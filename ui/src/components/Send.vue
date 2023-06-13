@@ -5,7 +5,7 @@ import axios from "axios";
 import { onMounted, computed, reactive, inject, ref } from "vue";
 const DOT = "・";
 const DASH = "－";
-let keypressTime = ref(null);
+let keydownTime = ref(null);
 let keyupTime = ref(null);
 // let beforePressDuration = ref(0);
 let wordsList = ref([]);
@@ -22,8 +22,16 @@ let interval = ref("");
 const morseCodeMap = inject("morseCodeMap");
 
 onMounted(() => {
+  // ダブルタップで拡大無効
+  document.addEventListener(
+    "dblclick",
+    function (e) {
+      e.preventDefault();
+    },
+    { passive: false }
+  );
   bar.value = document.getElementById("bar");
-  document.addEventListener("keypress", keypress_event);
+  document.addEventListener("keydown", keydown_event);
   document.addEventListener("keyup", keyup_event);
   // axios
   //   .get("https://random-word-api.vercel.app/api?words=3&type=uppercase")
@@ -33,16 +41,31 @@ onMounted(() => {
   //     buildExampleSignal();
   //   })
   //   .catch((error) => console.log(error));
-  wordsList.value = ["NEKO", "SOS"];
+  wordsList.value = ["NEKO", "SOS", "DISCOUNT"];
   unJudgeWord.value = "NEKO";
   buildExampleSignal();
 });
 
-const keypress_event = (e) => {
-  if (e.keyCode != 32) return;
+const btnPush = (e) => {
+  console.log("push");
+  pushCommon();
+};
+const btnUp = (e) => {
+  console.log("up");
+  upCommon();
+};
 
-  if (keypressTime.value != null) return;
-  keypressTime.value = Date.now();
+const keydown_event = (e) => {
+  if (e.keyCode != 32) return;
+  pushCommon();
+};
+const keyup_event = (e) => {
+  if (e.keyCode != 32) return;
+  upCommon();
+};
+const pushCommon = () => {
+  if (keydownTime.value != null) return;
+  keydownTime.value = Date.now();
 
   let barWidth = 0;
 
@@ -62,7 +85,7 @@ const keypress_event = (e) => {
 
   // intervalの計算
   // if (keyupTime.value != null) {
-  //   let interVal = keypressTime.value - keyupTime.value;
+  //   let interVal = keydownTime.value - keyupTime.value;
   //   if (300 < interVal) {
   //     // interval一定以上だったら次の文字
   //     inputSignal.value = "";
@@ -72,8 +95,7 @@ const keypress_event = (e) => {
   // }
 };
 
-const keyup_event = (e) => {
-  if (e.keyCode != 32) return;
+const upCommon = () => {
   keyupTime.value = Date.now();
 
   // バー伸びとめる
@@ -88,7 +110,7 @@ const keyup_event = (e) => {
     }
   }, 0);
 
-  let pressDuration = keyupTime.value - keypressTime.value;
+  let pressDuration = keyupTime.value - keydownTime.value;
 
   if (pressDuration <= 180) {
     inputSignal.value += DOT;
@@ -101,8 +123,9 @@ const keyup_event = (e) => {
   // ここまでで信号が確定するので文字の判定をする
   judgeCode();
   // 初期化
-  keypressTime.value = null;
+  keydownTime.value = null;
 };
+
 const buildExampleSignal = () => {
   var chars = unJudgeWord.value.split("");
   chars.forEach(function (char) {
@@ -111,7 +134,7 @@ const buildExampleSignal = () => {
   // 末尾の空白消す
   unJudgeSignal.value = unJudgeSignal.value.slice(0, -1);
   judgedSignal.value = "";
-  keypressTime.value = 0;
+  keydownTime.value = 0;
   keyupTime.value = 0;
   return;
 };
@@ -137,7 +160,7 @@ const judgeCode = () => {
       // 失敗したsignalを未判定にいれなおす
       unJudgeSignal.value = missSignal + unJudgeSignal.value;
       inputSignal.value = "";
-      keypressTime.value = 0;
+      keydownTime.value = 0;
       keyupTime.value = 0;
       return;
     }
@@ -186,28 +209,49 @@ const changeSignalColor = () => {
     <v-col>
       <v-row class="text-center justify-center">
         <v-col class="mb-4">
-          <div>
-            <span class="collectText">{{ judgedWord }}</span>
-            <span class="neon">{{ unJudgeWord }}</span>
-          </div>
-          <div>
-            <span class="neonSignal">{{ judgedSignal }}</span>
-            <span class="graySignal">{{ unJudgeSignal }}</span>
-          </div>
-          <div align="center">
-            <v-col cols="4">
-              <div class="displaySignal">{{ displaySignal }}</div>
-            </v-col>
-          </div>
-
-          <br />
-
-          GUIDE
-          <div align="center">
-            <div class="bar-container" align="left">
-              <div id="bar" class="bar"></div>
+          <!-- 文字 -->
+          <v-col cols="12">
+            <div>
+              <span class="collectText">{{ judgedWord }}</span>
+              <span class="neon">{{ unJudgeWord }}</span>
             </div>
-          </div>
+          </v-col>
+          <!-- お手本 -->
+          <v-col cols="12">
+            <div>
+              <span class="neonSignal">{{ judgedSignal }}</span>
+              <span class="graySignal">{{ unJudgeSignal }}</span>
+            </div>
+          </v-col>
+          <!-- 入力文字 -->
+          <v-col cols="12">
+            <div align="center">
+              <!-- <v-col cols="12"> -->
+              <div class="displaySignal">{{ displaySignal }}</div>
+              <!-- </v-col> -->
+            </div>
+          </v-col>
+          <v-col cols="12" class="pa-10">
+            GUIDE
+            <div align="center">
+              <div class="bar-container" align="left">
+                <div id="bar" class="bar"></div>
+              </div>
+            </div>
+          </v-col>
+          <!-- 携帯で表示するボタン -->
+          <v-col cols="12">
+            <div class="pt-13 hidden-lg-and-up">
+              <button
+                v-wave
+                class="btn-circle"
+                @touchstart="btnPush"
+                @mouseup="btnUp"
+              >
+                <v-icon size="x-large">mdi-waveform</v-icon>
+              </button>
+            </div>
+          </v-col>
         </v-col>
       </v-row>
     </v-col>
@@ -223,7 +267,11 @@ const changeSignalColor = () => {
 
 /* ------ */
 :root {
-  --text-size: 100px;
+  --text-size: 10vmin;
+  /* リンク長押しのポップアップを無効化 */
+  -webkit-touch-callout: none;
+  /* テキスト長押しの選択ボックスを無効化 */
+  -webkit-user-select: none;
 }
 
 .collectText {
@@ -235,14 +283,14 @@ const changeSignalColor = () => {
 }
 .neonSignal {
   /* padding: 20px; */
-  font-size: 40px;
+  font-size: 6vmin;
   font-family: "Jura", sans-serif;
   text-shadow: 0 0 7px #c4c4c6, 0 0 10px #c4c4c6, 0 0 21px #c4c4c6,
     0 0 42px #c4c4c6, 0 0 82px #c4c4c6, 0 0 92px #c4c4c6, 0 0 102px #c4c4c6,
     0 0 151px #c4c4c6;
 }
 .graySignal {
-  font-size: 40px;
+  font-size: 6vmin;
   font-family: "Jura", sans-serif;
   color: #929291;
 }
@@ -284,4 +332,23 @@ const changeSignalColor = () => {
   box-shadow: 0 0 0rem #1095ce, 0 0 0.2rem #1095ce, 0 0 2rem #227599,
     0 0 0.8rem #227599, 0 0 2.8rem #227599, inset 0 0 1.3rem #227599;
 }
+
+.btn-circle {
+  display: inline-block;
+  text-decoration: none;
+  color: #668ad8;
+  width: 120px;
+  height: 120px;
+  line-height: 120px;
+  border-radius: 50%;
+  border: solid 2px #668ad8;
+  text-align: center;
+  overflow: hidden;
+  font-weight: bold;
+  transition: 0.4s;
+}
+
+/* .btn-circle-border-simple:hover {
+  background: #b3e1ff;
+} */
 </style>
