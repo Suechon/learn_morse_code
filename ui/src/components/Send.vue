@@ -1,36 +1,64 @@
 
 
 <script setup>
-import { onMounted, computed, inject, ref } from "vue";
+import axios from "axios";
+import { onMounted, computed, reactive, inject, ref } from "vue";
 const DOT = "・";
 const DASH = "－";
 let keypressTime = ref(null);
 let keyupTime = ref(null);
-let beforePressDuration = ref(0);
+// let beforePressDuration = ref(0);
+let wordsList = ref([]);
 let inputSignal = ref("");
 let displaySignal = ref("");
-let unJudgeWord = ref("NEKO");
+let unJudgeWord = ref("");
 let judgedWord = ref("");
 let unJudgeSignal = ref("");
 let jugingSignal = ref("");
 let judgedSignal = ref("");
+let bar = ref("");
+let interval = ref("");
 
 const morseCodeMap = inject("morseCodeMap");
 
 onMounted(() => {
-  buildExampleSignal();
+  bar.value = document.getElementById("bar");
   document.addEventListener("keypress", keypress_event);
   document.addEventListener("keyup", keyup_event);
-  // document.getElementById(
-  //   "word"
-  // ).innerHTML = `<span class="neon">${unJudgeWord.value}</span>`;
+  // axios
+  //   .get("https://random-word-api.vercel.app/api?words=3&type=uppercase")
+  //   .then((response) => {
+  //     wordsList.value = response.data;
+  //     unJudgeWord.value = wordsList.value[0];
+  //     buildExampleSignal();
+  //   })
+  //   .catch((error) => console.log(error));
+  wordsList.value = ["NEKO", "SOS"];
+  unJudgeWord.value = "NEKO";
+  buildExampleSignal();
 });
 
 const keypress_event = (e) => {
   if (e.keyCode != 32) return;
-  if (keypressTime.value != null) return;
 
+  if (keypressTime.value != null) return;
   keypressTime.value = Date.now();
+
+  let barWidth = 0;
+
+  // 棒を延ばすアニメーション
+  bar.value.classList.remove("red");
+  interval = setInterval(function () {
+    barWidth += 2;
+    bar.value.style.width = barWidth + "px";
+
+    if (barWidth >= 100) {
+      bar.value.classList.add("red");
+    }
+    if (barWidth >= 200) {
+      clearInterval(interval);
+    }
+  }, 1);
 
   // intervalの計算
   // if (keyupTime.value != null) {
@@ -47,42 +75,28 @@ const keypress_event = (e) => {
 const keyup_event = (e) => {
   if (e.keyCode != 32) return;
   keyupTime.value = Date.now();
+
+  // バー伸びとめる
+  clearInterval(interval);
+  var barWidth = 0;
+  interval = setInterval(function () {
+    barWidth -= 1;
+    bar.value.style.width = barWidth + "px";
+
+    if (barWidth <= 0) {
+      clearInterval(interval);
+    }
+  }, 0);
+
   let pressDuration = keyupTime.value - keypressTime.value;
 
-  // if (beforePressDuration.value == 0) {
-  if (pressDuration <= 230) {
-    // dot:0
-    // console.log("短い" + pressDuration);
+  if (pressDuration <= 180) {
     inputSignal.value += DOT;
   } else {
-    // dash:1
-    // console.log("長い" + pressDuration);
     inputSignal.value += DASH;
   }
-  // beforePressDuration.value = pressDuration;
-  // } else {
-  //   if (pressDuration <= beforePressDuration.value) {
-  //     console.log("短い" + beforePressDuration.value + ";" + pressDuration);
-  //     beforePressDuration.value = pressDuration + 50;
-  //     inputSignal.value += DOT;
-  //   } else {
-  //     beforePressDuration.value = pressDuration - 100;
-  //     console.log("長い" + beforePressDuration.value + ";" + pressDuration);
-  //     inputSignal.value += DASH;
-  //   }
-  // }
-  displaySignal.value = inputSignal.value;
-  console.log(displaySignal.value);
 
-  // if (pressDuration <= 200) {
-  //   // dot:0
-  //   console.log("短い" + pressDuration);
-  //   inputSignal.value += DOT;
-  // } else {
-  //   // dash:1
-  //   console.log("長い" + pressDuration);
-  //   inputSignal.value += DASH;
-  // }
+  displaySignal.value = inputSignal.value;
 
   // ここまでで信号が確定するので文字の判定をする
   judgeCode();
@@ -97,6 +111,8 @@ const buildExampleSignal = () => {
   // 末尾の空白消す
   unJudgeSignal.value = unJudgeSignal.value.slice(0, -1);
   judgedSignal.value = "";
+  keypressTime.value = 0;
+  keyupTime.value = 0;
   return;
 };
 // 文字の判定処理
@@ -107,8 +123,7 @@ const judgeCode = () => {
   const correctMorse = morseCodeMap.value.get(judgeChar);
 
   for (let i = 0; i < inputSignal.value.length; i++) {
-    if (inputSignal.value[i] != correctMorse[i]) {
-      // console.log("みすってる");
+    if (correctMorse == null || inputSignal.value[i] != correctMorse[i]) {
       // iぶんのjudgedSignalを削除する
       // 確定してる文字をとりだす
       var confirmSignal = judgedSignal.value.substring(
@@ -121,8 +136,9 @@ const judgeCode = () => {
       judgedSignal.value = confirmSignal;
       // 失敗したsignalを未判定にいれなおす
       unJudgeSignal.value = missSignal + unJudgeSignal.value;
-
       inputSignal.value = "";
+      keypressTime.value = 0;
+      keyupTime.value = 0;
       return;
     }
   }
@@ -139,19 +155,19 @@ const judgeCode = () => {
 
   // 全部の文字が終わった場合
   if (unJudgeWord.value.length == 0) {
-    console.log("finish");
-    unJudgeWord.value = "INU";
+    // unJudgeWord.value = "INU";
+    var index = wordsList.value.indexOf(judgedWord.value);
     judgedWord.value = "";
     displaySignal.value = "";
-    buildExampleSignal();
+    if (index != wordsList.value.length - 1) {
+      unJudgeWord.value = wordsList.value[index + 1];
+      buildExampleSignal();
+    }
   }
 };
 const changeTextColor = (judgeChar) => {
   judgedWord.value += judgeChar;
   unJudgeWord.value = unJudgeWord.value.slice(1);
-  // let tag = `<span class="collectText">${judgedWord.value}</span><span class="neon">${unJudgeWord.value}</span>`;
-  // word.value = unJudgeWord;
-  // document.getElementById("word").innerHTML = tag;
 };
 const changeSignalColor = () => {
   var targetSignal = unJudgeSignal.value.substring(0, 1);
@@ -186,25 +202,12 @@ const changeSignalColor = () => {
 
           <br />
 
-          <!-- --------------------------------------------------------------------------------------------------------------- -->
-          <br />
-          <!-- {{ inputSignal }} -->
-
-          <!-- <div id="word"></div> -->
-          <!-- <span v-for="items in judgedSignal" :key="items.value">
-          <span v-if="items == 0" class="collectSignal">
-            <v-icon class="collectSignal">mdi-circle-small</v-icon>
-          </span>
-          <span v-else-if="items == 1" class="collectSignal">
-            <v-icon class="collectSignal">mdi-minus</v-icon>
-          </span>
-          <span v-else class="ma-2"> </span>
-        </span> -->
-          <!-- <span v-for="items in unJudgeSignal" :key="items.value">
-          <span v-if="items == 0"><v-icon>mdi-circle-small</v-icon></span>
-          <span v-else-if="items == 1"><v-icon>mdi-minus</v-icon></span>
-          <span v-else class="ma-2"> </span>
-        </span> -->
+          GUIDE
+          <div align="center">
+            <div class="bar-container" align="left">
+              <div id="bar" class="bar"></div>
+            </div>
+          </div>
         </v-col>
       </v-row>
     </v-col>
@@ -258,5 +261,27 @@ const changeSignalColor = () => {
   /* padding: ; */
   box-shadow: 0 0 1px #fff, 0 0 1px #fff, 0 0 10px #c4c4c6, 0 0 10px #c4c4c6,
     0 0 10px #c4c4c6, inset 0 0 5px #c4c4c6;
+}
+
+.bar-container {
+  width: 200px; /* バーの長さに合わせて調整 */
+  height: 5px; /* バーの太さに合わせて調整 */
+  background-color: #000; /* バーの背景色 */
+}
+
+.bar {
+  width: 0;
+  height: 100%;
+  /* バーの色 */
+  background-color: #fff;
+  /* アニメーションの設定 */
+  transition: width ease-in-out, background-color ease-in-out; /* アニメーションの設定 */
+  box-shadow: 0 0 0rem #fff, 0 0 0.2rem #fff, 0 0 2rem #b9b5b9,
+    0 0 0.8rem #b9b5b9, 0 0 2.8rem #b9b5b9, inset 0 0 1.3rem #fff;
+}
+.bar.red {
+  background-color: #64aece; /* バーの赤色 */
+  box-shadow: 0 0 0rem #1095ce, 0 0 0.2rem #1095ce, 0 0 2rem #227599,
+    0 0 0.8rem #227599, 0 0 2.8rem #227599, inset 0 0 1.3rem #227599;
 }
 </style>
