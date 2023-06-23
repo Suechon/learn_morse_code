@@ -8,7 +8,6 @@ const DASH = "－";
 let keydownTime = ref(null);
 let keyupTime = ref(null);
 // let beforePressDuration = ref(0);
-let wordsList = ref([]);
 let inputSignal = ref("");
 let displaySignal = ref("");
 let unJudgeWord = ref("");
@@ -18,8 +17,13 @@ let jugingSignal = ref("");
 let judgedSignal = ref("");
 let bar = ref("");
 let interval = ref("");
+// 問題に出す単語リスト
+let words = ref([]);
 
 const morseCodeMap = inject("morseCodeMap");
+const WORD_LIST = inject("wordList");
+const wordList = ref([]);
+wordList.value = [...WORD_LIST.value];
 
 onMounted(() => {
   // ダブルタップで拡大無効
@@ -33,16 +37,10 @@ onMounted(() => {
   bar.value = document.getElementById("bar");
   document.addEventListener("keydown", keydown_event);
   document.addEventListener("keyup", keyup_event);
-  // axios
-  //   .get("https://random-word-api.vercel.app/api?words=3&type=uppercase")
-  //   .then((response) => {
-  //     wordsList.value = response.data;
-  //     unJudgeWord.value = wordsList.value[0];
-  //     buildExampleSignal();
-  //   })
-  //   .catch((error) => console.log(error));
-  wordsList.value = ["NEKO", "SOS", "DISCOUNT"];
-  unJudgeWord.value = "NEKO";
+  // wordsList.value = ["NEKO", "SOS", "DISCOUNT"];
+  // unJudgeWord.value = "NEKO";
+  selectWords();
+  unJudgeWord.value = words.value[0];
   buildExampleSignal();
 });
 
@@ -178,14 +176,29 @@ const judgeCode = () => {
 
   // 全部の文字が終わった場合
   if (unJudgeWord.value.length == 0) {
-    // unJudgeWord.value = "INU";
-    var index = wordsList.value.indexOf(judgedWord.value);
+    if (words.value.length == 1) {
+      // 全ての問題を出し終わった
+      console.log("😍😍😍");
+      return;
+    }
     judgedWord.value = "";
     displaySignal.value = "";
-    if (index != wordsList.value.length - 1) {
-      unJudgeWord.value = wordsList.value[index + 1];
-      buildExampleSignal();
-    }
+    // 問題単語リストの頭を削除
+    words.value.splice(0, 1);
+    // 問題単語リストの新頭を問題とする
+    unJudgeWord.value = words.value[0];
+    buildExampleSignal();
+
+    // 今判定終わった文字のindex取得
+    // var index = words.value.indexOf(judgedWord.value);
+    // judgedWord.value = "";
+    // displaySignal.value = "";
+    // if (index != words.value.length - 1) {
+    // if (words.value.length != 0) {
+    // console.log("😍😍😍");
+    // unJudgeWord.value = words.value[index + 1];
+    // buildExampleSignal();
+    // }
   }
 };
 const changeTextColor = (judgeChar) => {
@@ -202,6 +215,18 @@ const changeSignalColor = () => {
   judgedSignal.value += targetSignal;
   unJudgeSignal.value = unJudgeSignal.value.slice(1);
 };
+
+const selectWords = (number) => {
+  for (var i = 0; i < 2; i++) {
+    var word =
+      wordList.value[Math.floor(Math.random() * wordList.value.length)];
+    words.value.push(word);
+    // 使った単語は削除する
+    var index = wordList.value.indexOf(word);
+    wordList.value.splice(index, 1);
+    console.log(wordList.value);
+  }
+};
 </script>
 //------------------------------------------------- 
 <template>
@@ -216,6 +241,7 @@ const changeSignalColor = () => {
               <span class="neon">{{ unJudgeWord }}</span>
             </div>
           </v-col>
+          {{ words }}
           <!-- お手本 -->
           <v-col cols="12">
             <div>
@@ -232,7 +258,6 @@ const changeSignalColor = () => {
             </div>
           </v-col>
           <v-col cols="12" class="pa-10">
-            GUIDE
             <div align="center">
               <div class="bar-container" align="left">
                 <div id="bar" class="bar"></div>
