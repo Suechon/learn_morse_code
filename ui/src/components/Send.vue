@@ -19,6 +19,15 @@ let bar = ref("");
 let interval = ref("");
 // 問題に出す単語リスト
 let words = ref([]);
+let dialog = ref(true);
+let messageFlg = ref(false);
+let slideValue = ref("");
+const selector = {
+  0: "3",
+  1: "5",
+  2: "10",
+  3: "20",
+};
 
 const morseCodeMap = inject("morseCodeMap");
 const WORD_LIST = inject("wordList");
@@ -39,9 +48,6 @@ onMounted(() => {
   document.addEventListener("keyup", keyup_event);
   // wordsList.value = ["NEKO", "SOS", "DISCOUNT"];
   // unJudgeWord.value = "NEKO";
-  selectWords();
-  unJudgeWord.value = words.value[0];
-  buildExampleSignal();
 });
 
 const btnPush = (e) => {
@@ -127,7 +133,7 @@ const upCommon = () => {
 const buildExampleSignal = () => {
   var chars = unJudgeWord.value.split("");
   chars.forEach(function (char) {
-    unJudgeSignal.value += morseCodeMap.value.get(char) + " ";
+    unJudgeSignal.value += morseCodeMap.value.get(char) + "　";
   });
   // 末尾の空白消す
   unJudgeSignal.value = unJudgeSignal.value.slice(0, -1);
@@ -177,8 +183,8 @@ const judgeCode = () => {
   // 全部の文字が終わった場合
   if (unJudgeWord.value.length == 0) {
     if (words.value.length == 1) {
-      // 全ての問題を出し終わった
-      console.log("😍😍😍");
+      messageFlg.value = true;
+      reset();
       return;
     }
     judgedWord.value = "";
@@ -188,17 +194,6 @@ const judgeCode = () => {
     // 問題単語リストの新頭を問題とする
     unJudgeWord.value = words.value[0];
     buildExampleSignal();
-
-    // 今判定終わった文字のindex取得
-    // var index = words.value.indexOf(judgedWord.value);
-    // judgedWord.value = "";
-    // displaySignal.value = "";
-    // if (index != words.value.length - 1) {
-    // if (words.value.length != 0) {
-    // console.log("😍😍😍");
-    // unJudgeWord.value = words.value[index + 1];
-    // buildExampleSignal();
-    // }
   }
 };
 const changeTextColor = (judgeChar) => {
@@ -209,24 +204,63 @@ const changeSignalColor = () => {
   var targetSignal = unJudgeSignal.value.substring(0, 1);
   if (targetSignal != DOT && targetSignal != DASH) {
     targetSignal = unJudgeSignal.value.substring(1, 2);
-    judgedSignal.value += " ";
+    judgedSignal.value += "　";
     unJudgeSignal.value = unJudgeSignal.value.slice(1);
   }
   judgedSignal.value += targetSignal;
   unJudgeSignal.value = unJudgeSignal.value.slice(1);
 };
 
-const selectWords = (number) => {
-  for (var i = 0; i < 2; i++) {
+const start = () => {
+  console.log("start");
+  selectWords();
+  dialog.value = false;
+
+  // 実行
+  unJudgeWord.value = words.value[0];
+  buildExampleSignal();
+};
+async function reset() {
+  // 全ての問題を出し終わった
+  unJudgeWord.value = "";
+  displaySignal.value = "";
+  await sleep(1000);
+  dialog.value = true;
+}
+const selectWords = () => {
+  var num = 1;
+  if (slideValue.value == 0) {
+    num = 3;
+  }
+  if (slideValue.value == 1) {
+    num = 5;
+  }
+  if (slideValue.value == 2) {
+    num = 10;
+  }
+  if (slideValue.value == 3) {
+    num = 20;
+  }
+  for (var i = 0; i < num; i++) {
+    if (wordList.value.length == 0) {
+      return;
+    }
     var word =
       wordList.value[Math.floor(Math.random() * wordList.value.length)];
     words.value.push(word);
     // 使った単語は削除する
     var index = wordList.value.indexOf(word);
     wordList.value.splice(index, 1);
-    console.log(wordList.value);
   }
 };
+
+function sleep(msec) {
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      resolve();
+    }, msec);
+  });
+}
 </script>
 //------------------------------------------------- 
 <template>
@@ -241,7 +275,7 @@ const selectWords = (number) => {
               <span class="neon">{{ unJudgeWord }}</span>
             </div>
           </v-col>
-          {{ words }}
+
           <!-- お手本 -->
           <v-col cols="12">
             <div>
@@ -259,6 +293,7 @@ const selectWords = (number) => {
           </v-col>
           <v-col cols="12" class="pa-10">
             <div align="center">
+              GUIDE
               <div class="bar-container" align="left">
                 <div id="bar" class="bar"></div>
               </div>
@@ -280,6 +315,64 @@ const selectWords = (number) => {
         </v-col>
       </v-row>
     </v-col>
+
+    <!-- ---------------------------------------------------------------------------------- -->
+
+    <v-dialog
+      v-model="dialog"
+      transition="dialog-bottom-transition"
+      persistent
+      width="800"
+    >
+      <v-card height="800" color="#222629">
+        <v-container fluid>
+          <v-col>
+            <v-row
+              no-gutters
+              v-if="messageFlg"
+              dense
+              class="mb-12 text-center justify-center"
+            >
+              <v-col cols="12" class="align-center">
+                <div class="bubbly" style="color: #c4c4c6; font-size: 4vmin">
+                  <i>GOOD JOB!!</i>
+                </div>
+                <v-divider class="mt-12"></v-divider>
+              </v-col>
+            </v-row>
+            <v-row dense class="text-center justify-center">
+              <div style="color: #c4c4c6; font-size: 3vmin">
+                MORSE CODE ALPHABET
+              </div>
+
+              <v-col cols="10" class="my-10">
+                WORDS
+                <v-slider
+                  v-model="slideValue"
+                  dark
+                  color="#c4c4c6"
+                  track-color="#00b3ff"
+                  :ticks="selector"
+                  :max="3"
+                  step="1"
+                  show-ticks="always"
+                  tick-size="5"
+                ></v-slider>
+                <v-btn
+                  class="collectText"
+                  style="font-size: 10vmin"
+                  variant="plain"
+                  x-latge
+                  @click="start"
+                >
+                  START
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-container>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -308,14 +401,14 @@ const selectWords = (number) => {
 }
 .neonSignal {
   /* padding: 20px; */
-  font-size: 6vmin;
+  font-size: 5vmin;
   font-family: "Jura", sans-serif;
   text-shadow: 0 0 7px #c4c4c6, 0 0 10px #c4c4c6, 0 0 21px #c4c4c6,
     0 0 42px #c4c4c6, 0 0 82px #c4c4c6, 0 0 92px #c4c4c6, 0 0 102px #c4c4c6,
     0 0 151px #c4c4c6;
 }
 .graySignal {
-  font-size: 6vmin;
+  font-size: 5vmin;
   font-family: "Jura", sans-serif;
   color: #929291;
 }
@@ -373,7 +466,96 @@ const selectWords = (number) => {
   transition: 0.4s;
 }
 
-/* .btn-circle-border-simple:hover {
-  background: #b3e1ff;
-} */
+.bubbly {
+  font-family: "Helvetica", "Arial", sans-serif;
+  display: inline-block;
+  /* font-size: 1em; */
+  /* padding: 1em 2em; */
+  padding: 0.5em 1em;
+  margin-top: 100px;
+  margin-bottom: 60px;
+  -webkit-appearance: none;
+  appearance: none;
+  color: #fff;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: transform ease-in 0.1s, box-shadow ease-in 0.25s;
+}
+.bubbly:focus {
+  outline: 0;
+}
+.bubbly:before,
+.bubbly:after {
+  position: absolute;
+  content: "";
+  display: block;
+  width: 140%;
+  height: 100%;
+  left: -20%;
+  z-index: -1000;
+  transition: all ease-in-out 0.5s;
+  background-repeat: no-repeat;
+}
+.bubbly:before {
+  display: block;
+  top: -75%;
+  background-image: radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, transparent 20%, #ff0081 20%, transparent 30%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, transparent 10%, #ff0081 15%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%);
+  background-size: 10% 10%, 20% 20%, 15% 15%, 20% 20%, 18% 18%, 10% 10%, 15% 15%,
+    10% 10%, 18% 18%;
+  animation: topBubbles ease-in-out 2.5s infinite forwards;
+}
+.bubbly:after {
+  display: block;
+  bottom: -75%;
+  background-image: radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, transparent 10%, #ff0081 15%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%),
+    radial-gradient(circle, #ff0081 20%, transparent 20%);
+  background-size: 15% 15%, 20% 20%, 18% 18%, 20% 20%, 15% 15%, 10% 10%, 20% 20%;
+  animation: bottomBubbles ease-in-out 2.5s infinite forwards;
+}
+
+@keyframes topBubbles {
+  0% {
+    background-position: 5% 90%, 10% 90%, 10% 90%, 15% 90%, 25% 90%, 25% 90%,
+      40% 90%, 55% 90%, 70% 90%;
+  }
+  50% {
+    background-position: 0% 80%, 0% 20%, 10% 40%, 20% 0%, 30% 30%, 22% 50%,
+      50% 50%, 65% 20%, 90% 30%;
+  }
+  100% {
+    background-position: 0% 70%, 0% 10%, 10% 30%, 20% -10%, 30% 20%, 22% 40%,
+      50% 40%, 65% 10%, 90% 20%;
+    background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+  }
+}
+@keyframes bottomBubbles {
+  0% {
+    background-position: 10% -10%, 30% 10%, 55% -10%, 70% -10%, 85% -10%,
+      70% -10%, 70% 0%;
+  }
+  50% {
+    background-position: 0% 80%, 20% 80%, 45% 60%, 60% 100%, 75% 70%, 95% 60%,
+      105% 0%;
+  }
+  100% {
+    background-position: 0% 90%, 20% 90%, 45% 70%, 60% 110%, 75% 80%, 95% 70%,
+      110% 10%;
+    background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+  }
+}
 </style>

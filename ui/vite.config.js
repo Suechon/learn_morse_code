@@ -12,9 +12,9 @@ export default defineConfig({
     vue(),
     vuetify({ autoImport: true }),
   ],
-  // server: {
-  // host: true
-  // },
+  server: {
+    host: true
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
