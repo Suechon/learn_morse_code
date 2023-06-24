@@ -390,18 +390,36 @@ function sleep(msec) {
               <div class="mx-3">SUPPORT</div>
               <v-col cols="4" class="mt-2"><v-divider></v-divider></v-col>
             </v-row>
-
-            <v-btn
-              class="mt-8"
-              size="x-small"
-              stacked
-              variant="outlined"
-              color="#c4c4c6"
-              @click="link('https://wavebox.me/wave/7lmaiaq4mlduzn5t/')"
-            >
-              <p style="font-size: 20px">👋</p>
-              wave box
-            </v-btn>
+            <v-row dense class="text-center justify-center">
+              <v-col cols="2">
+                <v-btn
+                  class="mt-8"
+                  size="x-small"
+                  width="85"
+                  stacked
+                  variant="outlined"
+                  color="#c4c4c6"
+                  @click="link('https://wavebox.me/wave/7lmaiaq4mlduzn5t/')"
+                >
+                  <p style="font-size: 20px">👋</p>
+                  wave box
+                </v-btn>
+              </v-col>
+              <v-col cols="2">
+                <v-btn
+                  class="mt-8"
+                  width="85"
+                  size="x-small"
+                  stacked
+                  prepend-icon="mdi-github"
+                  variant="outlined"
+                  color="#c4c4c6"
+                  @click="link('https://github.com/Suechon/learn_morse_code')"
+                >
+                  git hub
+                </v-btn>
+              </v-col>
+            </v-row>
           </v-col>
         </v-container>
       </v-card>

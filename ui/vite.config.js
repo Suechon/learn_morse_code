@@ -20,13 +20,6 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  // base: "./",
-  // build: {
-  //   target: "esnext",
-  //   lib: {
-  //     fileName: "mod",
-  //     formats: ["es"],
-  //     entry: path.join(__dirname, "src/mod.ts"),
-  //   },
-  // },
+  base: "/learn_morse_code/",
+
 })
