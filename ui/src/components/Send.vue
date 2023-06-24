@@ -1,8 +1,12 @@
 
 
 <script setup>
-import axios from "axios";
+// import axios from "axios";
+import { useRouter, useRoute } from "vue-router";
 import { onMounted, computed, reactive, inject, ref } from "vue";
+const router = useRouter();
+const route = useRoute();
+
 const DOT = "・";
 const DASH = "－";
 let keydownTime = ref(null);
@@ -51,11 +55,9 @@ onMounted(() => {
 });
 
 const btnPush = (e) => {
-  console.log("push");
   pushCommon();
 };
 const btnUp = (e) => {
-  console.log("up");
   upCommon();
 };
 
@@ -212,7 +214,6 @@ const changeSignalColor = () => {
 };
 
 const start = () => {
-  console.log("start");
   selectWords();
   dialog.value = false;
 
@@ -224,7 +225,7 @@ async function reset() {
   // 全ての問題を出し終わった
   unJudgeWord.value = "";
   displaySignal.value = "";
-  await sleep(1000);
+  await sleep(100);
   dialog.value = true;
 }
 const selectWords = () => {
@@ -253,7 +254,9 @@ const selectWords = () => {
     wordList.value.splice(index, 1);
   }
 };
-
+const link = (url) => {
+  window.open(url, "_blank");
+};
 function sleep(msec) {
   return new Promise(function (resolve) {
     setTimeout(function () {
@@ -326,7 +329,7 @@ function sleep(msec) {
     >
       <v-card height="800" color="#222629">
         <v-container fluid>
-          <v-col>
+          <v-col class="text-center">
             <v-row
               no-gutters
               v-if="messageFlg"
@@ -340,12 +343,12 @@ function sleep(msec) {
                 <v-divider class="mt-12"></v-divider>
               </v-col>
             </v-row>
-            <v-row dense class="text-center justify-center">
+            <v-row dense class="text-center justify-center pb-12">
               <div style="color: #c4c4c6; font-size: 3vmin">
                 MORSE CODE ALPHABET
               </div>
 
-              <v-col cols="10" class="my-10">
+              <v-col cols="10" class="my-10 pb-12">
                 WORDS
                 <v-slider
                   v-model="slideValue"
@@ -359,7 +362,7 @@ function sleep(msec) {
                   tick-size="5"
                 ></v-slider>
                 <v-btn
-                  class="collectText"
+                  class="collectText mt-12 pt-5"
                   style="font-size: 10vmin"
                   variant="plain"
                   x-latge
@@ -369,6 +372,30 @@ function sleep(msec) {
                 </v-btn>
               </v-col>
             </v-row>
+
+            <!-- <v-col> -->
+            <v-row dense class="text-center justify-center mt-12 pt-12">
+              <!-- <v-col> -->
+              <v-col cols="4" class="mt-2"><v-divider></v-divider></v-col>
+
+              <div class="mx-3">SUPPORT</div>
+              <v-col cols="4" class="mt-2"><v-divider></v-divider></v-col>
+            </v-row>
+            <!-- <a href="" target="_blank"
+              >hoge -->
+            <v-btn
+              class="mt-8"
+              size="x-small"
+              stacked
+              variant="outlined"
+              color="#c4c4c6"
+              @click="link('https://wavebox.me/wave/7lmaiaq4mlduzn5t/')"
+            >
+              <p style="font-size: 20px">👋</p>
+              wave box
+            </v-btn>
+            <!-- </a> -->
+            <!-- </v-col> -->
           </v-col>
         </v-container>
       </v-card>
