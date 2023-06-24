@@ -37,6 +37,7 @@ const morseCodeMap = inject("morseCodeMap");
 const WORD_LIST = inject("wordList");
 const wordList = ref([]);
 wordList.value = [...WORD_LIST.value];
+const touchArea1 = document.getElementsByClassName("btn-circle");
 
 onMounted(() => {
   // ダブルタップで拡大無効
@@ -50,16 +51,16 @@ onMounted(() => {
   bar.value = document.getElementById("bar");
   document.addEventListener("keydown", keydown_event);
   document.addEventListener("keyup", keyup_event);
+
+  touchArea1[0].addEventListener("touchstart", () => {
+    pushCommon();
+  });
+  touchArea1[0].addEventListener("touchend", () => {
+    upCommon();
+  });
   // wordsList.value = ["NEKO", "SOS", "DISCOUNT"];
   // unJudgeWord.value = "NEKO";
 });
-
-const btnPush = (e) => {
-  pushCommon();
-};
-const btnUp = (e) => {
-  upCommon();
-};
 
 const keydown_event = (e) => {
   if (e.keyCode != 32) return;
@@ -70,7 +71,7 @@ const keyup_event = (e) => {
   upCommon();
 };
 const pushCommon = () => {
-  if (keydownTime.value != null) return;
+  // if (keydownTime.value != null) return;
   keydownTime.value = Date.now();
 
   let barWidth = 0;
@@ -214,6 +215,15 @@ const changeSignalColor = () => {
 };
 
 const start = () => {
+  judgedSignal.value = "";
+  unJudgeSignal.value = "";
+  judgedWord.value = "";
+  unJudgeWord.value = "";
+  inputSignal.value = "";
+  bar.value.style.width = "0px";
+  // keyupTime.value = null;
+  // keydownTime.value = null;
+  words.value = [];
   selectWords();
   dialog.value = false;
 
@@ -243,8 +253,8 @@ const selectWords = () => {
     num = 20;
   }
   for (var i = 0; i < num; i++) {
-    if (wordList.value.length == 0) {
-      return;
+    if (wordList.value == null || wordList.value.length == 0) {
+      wordList.value = [...WORD_LIST.value];
     }
     var word =
       wordList.value[Math.floor(Math.random() * wordList.value.length)];
@@ -278,7 +288,6 @@ function sleep(msec) {
               <span class="neon">{{ unJudgeWord }}</span>
             </div>
           </v-col>
-
           <!-- お手本 -->
           <v-col cols="12">
             <div>
@@ -302,15 +311,14 @@ function sleep(msec) {
               </div>
             </div>
           </v-col>
+          <p class="hidden-md-and-down" style="color: #939395">
+            PRESS THE SPACE KEY
+          </p>
+
           <!-- 携帯で表示するボタン -->
           <v-col cols="12">
             <div class="pt-13 hidden-lg-and-up">
-              <button
-                v-wave
-                class="btn-circle"
-                @touchstart="btnPush"
-                @mouseup="btnUp"
-              >
+              <button v-wave class="btn-circle">
                 <v-icon size="x-large">mdi-waveform</v-icon>
               </button>
             </div>
@@ -329,26 +337,29 @@ function sleep(msec) {
     >
       <v-card height="800" color="#222629">
         <v-container fluid>
-          <v-col class="text-center">
+          <v-col class="pa-0 text-center">
+            <div style="color: #c4c4c6; font-size: 2vh">
+              MORSE CODE ALPHABET
+            </div>
             <v-row
               no-gutters
               v-if="messageFlg"
               dense
-              class="mb-12 text-center justify-center"
+              class="text-center justify-center"
             >
               <v-col cols="12" class="align-center">
-                <div class="bubbly" style="color: #c4c4c6; font-size: 4vmin">
+                <div
+                  class="bubbly my-12"
+                  style="color: #c4c4c6; font-size: 2vh"
+                >
                   <i>GOOD JOB!!</i>
                 </div>
-                <v-divider class="mt-12"></v-divider>
+                <v-divider class="mt-2"></v-divider>
               </v-col>
             </v-row>
-            <v-row dense class="text-center justify-center pb-12">
-              <div style="color: #c4c4c6; font-size: 3vmin">
-                MORSE CODE ALPHABET
-              </div>
 
-              <v-col cols="10" class="my-10 pb-12">
+            <v-row dense class="text-center justify-center">
+              <v-col cols="10" class="my-10">
                 WORDS
                 <v-slider
                   v-model="slideValue"
@@ -362,8 +373,8 @@ function sleep(msec) {
                   tick-size="5"
                 ></v-slider>
                 <v-btn
-                  class="collectText mt-12 pt-5"
-                  style="font-size: 10vmin"
+                  class="collectText pt-6"
+                  style="font-size: 8vmin"
                   variant="plain"
                   x-latge
                   @click="start"
@@ -373,16 +384,13 @@ function sleep(msec) {
               </v-col>
             </v-row>
 
-            <!-- <v-col> -->
             <v-row dense class="text-center justify-center mt-12 pt-12">
-              <!-- <v-col> -->
               <v-col cols="4" class="mt-2"><v-divider></v-divider></v-col>
 
               <div class="mx-3">SUPPORT</div>
               <v-col cols="4" class="mt-2"><v-divider></v-divider></v-col>
             </v-row>
-            <!-- <a href="" target="_blank"
-              >hoge -->
+
             <v-btn
               class="mt-8"
               size="x-small"
@@ -394,8 +402,6 @@ function sleep(msec) {
               <p style="font-size: 20px">👋</p>
               wave box
             </v-btn>
-            <!-- </a> -->
-            <!-- </v-col> -->
           </v-col>
         </v-container>
       </v-card>
@@ -448,7 +454,7 @@ function sleep(msec) {
 .displaySignal {
   font-size: 30px;
   height: 50px;
-  width: 300px;
+  width: 280px;
   border: 1px solid #fff;
   /* border-radius: 2rem; */
   /* padding: ; */
@@ -499,8 +505,8 @@ function sleep(msec) {
   /* font-size: 1em; */
   /* padding: 1em 2em; */
   padding: 0.5em 1em;
-  margin-top: 100px;
-  margin-bottom: 60px;
+  /* margin-top: 50px; */
+  /* margin-bottom: 20px; */
   -webkit-appearance: none;
   appearance: none;
   color: #fff;

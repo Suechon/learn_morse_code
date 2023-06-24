@@ -6,11 +6,7 @@ import Send from "../components/Send.vue";
 
 <template>
   <div>
-    <!-- {{ unJudgeWord }} -->
-    <!-- {{ inputSignal }} -->
-
     <Send />
-    <!-- <p id="word"></p> -->
   </div>
 </template>
 

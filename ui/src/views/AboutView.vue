@@ -1,15 +1,29 @@
+<script setup>
+import { useRouter, useRoute } from "vue-router";
+const router = useRouter();
+const route = useRoute();
+</script>
+
+
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
+  <div>
+    <v-row class="text-center justify-center">
+      <v-col cols="12">
+        <h1 class="mt-12">404 NOT FOUND</h1>
+        <v-btn class="mt-3" @click="router.push('/')" variant="outlined">
+          TOP
+        </v-btn>
+      </v-col>
+      <v-col cols="8">
+        <v-img
+          class="mt-0 pt-0"
+          src="404cat.jpg"
+          aspect-ratio="1/1"
+          height="400"
+        >
+        </v-img>
+      </v-col>
+    </v-row>
   </div>
 </template>
 
-<style>
-@media (min-width: 1024px) {
-  .about {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-}
-</style>
