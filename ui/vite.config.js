@@ -19,5 +19,14 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
-  }
+  },
+  // base: "./",
+  // build: {
+  //   target: "esnext",
+  //   lib: {
+  //     fileName: "mod",
+  //     formats: ["es"],
+  //     entry: path.join(__dirname, "src/mod.ts"),
+  //   },
+  // },
 })
