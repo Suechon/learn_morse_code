@@ -73,8 +73,8 @@ const keyup_event = (e) => {
 const pushCommon = () => {
   // 2重で起動しないようにする
   clearInterval(interval.value);
-  // 棒を延ばすアニメーション
-  interval.value = setInterval(function () {
+
+  interval.value = setInterval(() => {
     if (barWidth.value >= 200) {
       clearInterval(interval.value);
       return;
@@ -91,10 +91,10 @@ const pushCommon = () => {
 const upCommon = () => {
   // 2重で起動しないようにする
   clearInterval(interval.value);
-  var barLength = barWidth.value;
+  let barLength = barWidth.value;
 
   // 縮んでいくアニメーション
-  interval.value = setInterval(function () {
+  interval.value = setInterval(() => {
     if (barWidth.value <= 0) {
       //最小値超えてる場合
       clearInterval(interval.value);
@@ -118,7 +118,7 @@ const upCommon = () => {
 };
 
 const buildExampleSignal = () => {
-  var chars = unJudgeWord.value.split("");
+  let chars = unJudgeWord.value.split("");
   chars.forEach(function (char) {
     unJudgeSignal.value += morseCodeMap.value.get(char) + "　";
   });
@@ -138,12 +138,12 @@ const judgeCode = () => {
     if (correctMorse == null || inputSignal.value[i] != correctMorse[i]) {
       // iぶんのjudgedSignalを削除する
       // 確定してる文字をとりだす
-      var confirmSignal = judgedSignal.value.substring(
+      let confirmSignal = judgedSignal.value.substring(
         0,
         judgedSignal.value.length - i
       );
       // ミスってるところとりだす
-      var missSignal = judgedSignal.value.slice(judgedSignal.value.length - i);
+      let missSignal = judgedSignal.value.slice(judgedSignal.value.length - i);
       // 正解してるsignalをいれなおす
       judgedSignal.value = confirmSignal;
       // 失敗したsignalを未判定にいれなおす
@@ -184,7 +184,7 @@ const changeTextColor = (judgeChar) => {
   unJudgeWord.value = unJudgeWord.value.slice(1);
 };
 const changeSignalColor = () => {
-  var targetSignal = unJudgeSignal.value.substring(0, 1);
+  let targetSignal = unJudgeSignal.value.substring(0, 1);
   if (targetSignal != DOT && targetSignal != DASH) {
     targetSignal = unJudgeSignal.value.substring(1, 2);
     judgedSignal.value += "　";
@@ -217,7 +217,7 @@ async function reset() {
   dialog.value = true;
 }
 const selectWords = () => {
-  var num = 1;
+  let num = 1;
   if (slideValue.value == 0) {
     num = 3;
   }
@@ -234,11 +234,11 @@ const selectWords = () => {
     if (wordList.value == null || wordList.value.length == 0) {
       wordList.value = [...WORD_LIST.value];
     }
-    var word =
+    let word =
       wordList.value[Math.floor(Math.random() * wordList.value.length)];
     words.value.push(word);
     // 使った単語は削除する
-    var index = wordList.value.indexOf(word);
+    let index = wordList.value.indexOf(word);
     wordList.value.splice(index, 1);
   }
 };
