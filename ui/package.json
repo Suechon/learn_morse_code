@@ -6,13 +6,15 @@
     "build": "vite build",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "dev": "vite",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@jamescoyle/vue-icon": "^0.1.2",
     "@mdi/font": "5.9.55",
     "@mdi/js": "^7.2.96",
     "axios": "^1.4.0",
+    "gh-pages": "^6.1.1",
     "pinia": "^2.0.23",
     "roboto-fontface": "*",
     "v-wave": "^1.5.1",
