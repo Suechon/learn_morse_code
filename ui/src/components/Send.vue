@@ -9,8 +9,7 @@ const route = useRoute();
 
 const DOT = "・";
 const DASH = "－";
-let keydownTime = ref(null);
-let keyupTime = ref(null);
+
 // let beforePressDuration = ref(0);
 let inputSignal = ref("");
 let displaySignal = ref("");
@@ -21,6 +20,7 @@ let jugingSignal = ref("");
 let judgedSignal = ref("");
 let bar = ref("");
 let interval = ref("");
+let barWidth = ref(0);
 // 問題に出す単語リスト
 let words = ref([]);
 let dialog = ref(true);
@@ -32,6 +32,7 @@ const selector = {
   2: "10",
   3: "20",
 };
+const blueBarSize = 100;
 
 const morseCodeMap = inject("morseCodeMap");
 const WORD_LIST = inject("wordList");
@@ -70,56 +71,42 @@ const keyup_event = (e) => {
   if (e.keyCode != 32) return;
   upCommon();
 };
+
 const pushCommon = () => {
-  // if (keydownTime.value != null) return;
-  keydownTime.value = Date.now();
-
-  let barWidth = 0;
-
+  // 2重で起動しないようにする
+  clearInterval(interval.value);
   // 棒を延ばすアニメーション
-  bar.value.classList.remove("red");
-  interval = setInterval(function () {
-    barWidth += 2;
-    bar.value.style.width = barWidth + "px";
-
-    if (barWidth >= 100) {
-      bar.value.classList.add("red");
+  interval.value = setInterval(function () {
+    if (barWidth.value >= 200) {
+      clearInterval(interval.value);
+      return;
     }
-    if (barWidth >= 200) {
-      clearInterval(interval);
+    bar.value.classList.remove("blue");
+    barWidth.value += 2;
+    bar.value.style.width = barWidth.value + "px";
+    if (barWidth.value >= blueBarSize) {
+      bar.value.classList.add("blue");
     }
   }, 1);
-
-  // intervalの計算
-  // if (keyupTime.value != null) {
-  //   let interVal = keydownTime.value - keyupTime.value;
-  //   if (300 < interVal) {
-  //     // interval一定以上だったら次の文字
-  //     inputSignal.value = "";
-  //   }
-  //   // 初期化
-  //   keyupTime.value = null;
-  // }
 };
 
 const upCommon = () => {
-  keyupTime.value = Date.now();
+  // 2重で起動しないようにする
+  clearInterval(interval.value);
+  var barLength = barWidth.value;
 
-  // バー伸びとめる
-  clearInterval(interval);
-  var barWidth = 0;
-  interval = setInterval(function () {
-    barWidth -= 1;
-    bar.value.style.width = barWidth + "px";
-
-    if (barWidth <= 0) {
-      clearInterval(interval);
+  // 縮んでいくアニメーション
+  interval.value = setInterval(function () {
+    if (barWidth.value <= 0) {
+      //最小値超えてる場合
+      clearInterval(interval.value);
+      return;
     }
+    barWidth.value -= 3;
+    bar.value.style.width = barWidth.value + "px";
   }, 0);
 
-  let pressDuration = keyupTime.value - keydownTime.value;
-
-  if (pressDuration <= 180) {
+  if (barLength <= blueBarSize) {
     inputSignal.value += DOT;
   } else {
     inputSignal.value += DASH;
@@ -130,7 +117,6 @@ const upCommon = () => {
   // ここまでで信号が確定するので文字の判定をする
   judgeCode();
   // 初期化
-  keydownTime.value = null;
 };
 
 const buildExampleSignal = () => {
@@ -141,8 +127,6 @@ const buildExampleSignal = () => {
   // 末尾の空白消す
   unJudgeSignal.value = unJudgeSignal.value.slice(0, -1);
   judgedSignal.value = "";
-  keydownTime.value = 0;
-  keyupTime.value = 0;
   return;
 };
 // 文字の判定処理
@@ -167,8 +151,6 @@ const judgeCode = () => {
       // 失敗したsignalを未判定にいれなおす
       unJudgeSignal.value = missSignal + unJudgeSignal.value;
       inputSignal.value = "";
-      keydownTime.value = 0;
-      keyupTime.value = 0;
       return;
     }
   }
@@ -221,8 +203,6 @@ const start = () => {
   unJudgeWord.value = "";
   inputSignal.value = "";
   bar.value.style.width = "0px";
-  // keyupTime.value = null;
-  // keydownTime.value = null;
   words.value = [];
   selectWords();
   dialog.value = false;
@@ -314,7 +294,6 @@ function sleep(msec) {
           <p class="hidden-md-and-down" style="color: #939395">
             PRESS THE SPACE KEY
           </p>
-
           <!-- 携帯で表示するボタン -->
           <v-col cols="12">
             <div class="pt-13 hidden-lg-and-up">
@@ -496,8 +475,8 @@ function sleep(msec) {
   box-shadow: 0 0 0rem #fff, 0 0 0.2rem #fff, 0 0 2rem #b9b5b9,
     0 0 0.8rem #b9b5b9, 0 0 2.8rem #b9b5b9, inset 0 0 1.3rem #fff;
 }
-.bar.red {
-  background-color: #64aece; /* バーの赤色 */
+.bar.blue {
+  background-color: #64aece; /* バーの色*/
   box-shadow: 0 0 0rem #1095ce, 0 0 0.2rem #1095ce, 0 0 2rem #227599,
     0 0 0.8rem #227599, 0 0 2.8rem #227599, inset 0 0 1.3rem #227599;
 }
