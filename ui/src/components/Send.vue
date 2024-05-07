@@ -95,13 +95,15 @@ const upCommon = () => {
 
   // 縮んでいくアニメーション
   interval.value = setInterval(() => {
+    barWidth.value -= 3;
+    bar.value.style.width = barWidth.value + "px";
     if (barWidth.value <= 0) {
       //最小値超えてる場合
+      barWidth.value = 0;
+      bar.value.style.width = barWidth.value + "px";
       clearInterval(interval.value);
       return;
     }
-    barWidth.value -= 3;
-    bar.value.style.width = barWidth.value + "px";
   }, 0);
 
   if (barLength <= blueBarSize) {
