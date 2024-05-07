@@ -59,16 +59,14 @@ onMounted(() => {
   touchArea1[0].addEventListener("touchend", () => {
     upCommon();
   });
-  // wordsList.value = ["NEKO", "SOS", "DISCOUNT"];
-  // unJudgeWord.value = "NEKO";
 });
 
 const keydown_event = (e) => {
-  if (e.keyCode != 32) return;
+  if (e.code != "Space") return;
   pushCommon();
 };
 const keyup_event = (e) => {
-  if (e.keyCode != 32) return;
+  if (e.code != "Space") return;
   upCommon();
 };
 
